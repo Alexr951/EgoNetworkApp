@@ -1,19 +1,17 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNetwork } from '../context/NetworkContext'
 import { ArrowLeft, Download, Eye, EyeOff, RotateCcw } from 'lucide-react'
-import ForceGraph2D from 'react-force-graph-2d'
 
 const NetworkVisualization = ({ onBackToBuilder }) => {
   const { state } = useNetwork()
   const [showLabels, setShowLabels] = useState(true)
-  const [graphRef, setGraphRef] = useState()
 
-  // Transform data for the force graph
-  const graphData = useMemo(() => {
+  // Calculate positions for static layout
+  const layout = useMemo(() => {
     const nodes = []
     const links = []
 
-    // Add ego node
+    // Add ego node at center
     if (state.ego.name) {
       nodes.push({
         id: state.ego.id,
@@ -22,12 +20,23 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
         gender: state.ego.gender,
         relationship: 'self',
         isEgo: true,
-        val: 20 // Larger node for ego
+        x: 300, // Center of SVG
+        y: 300,
+        radius: 25 // Larger node for ego
       })
     }
 
-    // Add family member nodes
-    state.familyMembers.forEach(member => {
+    // Position family members in a circle around ego
+    const centerX = 300
+    const centerY = 300
+    const radius = 150 // Distance from center
+    const angleStep = (2 * Math.PI) / Math.max(state.familyMembers.length, 1)
+    
+    state.familyMembers.forEach((member, index) => {
+      const angle = index * angleStep
+      const x = centerX + Math.cos(angle) * radius
+      const y = centerY + Math.sin(angle) * radius
+      
       nodes.push({
         id: member.id,
         name: member.name,
@@ -35,14 +44,15 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
         gender: member.gender,
         relationship: member.relationship,
         isEgo: false,
-        val: 15
+        x: x,
+        y: y,
+        radius: 20
       })
 
       // Create link from ego to family member
       links.push({
-        source: state.ego.id,
-        target: member.id,
-        relationship: member.relationship
+        source: { x: centerX, y: centerY },
+        target: { x: x, y: y }
       })
     })
 
@@ -50,49 +60,16 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
   }, [state])
 
   const getNodeColor = (node) => {
-    if (node.isEgo) return '#3b82f6' // Blue for ego
-    
-    const colors = {
-      'father': '#1d4ed8',
-      'mother': '#be185d',
-      'son': '#059669',
-      'daughter': '#7c3aed',
-      'brother': '#3730a3',
-      'sister': '#be123c',
-      'husband': '#1d4ed8',
-      'wife': '#be185d',
-      'spouse': '#7c3aed',
-      'partner': '#7c3aed',
-      'grandfather': '#d97706',
-      'grandmother': '#d97706',
-      'uncle': '#0891b2',
-      'aunt': '#0891b2',
-      'cousin': '#047857'
+    const genderColors = {
+      'male': '#8b5cf6', // Purple
+      'female': '#f59e0b', // Yellow
+      'other': '#10b981' // Green
     }
-    return colors[node.relationship] || '#6b7280'
-  }
-
-  const getNodeLabel = (node) => {
-    if (!showLabels) return ''
-    return `${node.name} (${node.age})`
-  }
-
-  const handleNodeClick = useCallback((node) => {
-    // Zoom to node
-    const distance = 40
-    const distRatio = 1 + distance/Math.hypot(node.x, node.y)
-    
-    graphRef.centerAt(node.x, node.y, 1000)
-    graphRef.zoom(2.5, 1000)
-  }, [graphRef])
-
-  const resetView = () => {
-    graphRef.centerAt(0, 0, 1000)
-    graphRef.zoom(1, 1000)
+    return genderColors[node.gender] || '#6b7280'
   }
 
   const downloadNetwork = () => {
-    const dataStr = JSON.stringify(graphData, null, 2)
+    const dataStr = JSON.stringify(layout, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
@@ -127,7 +104,7 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
             Your Ego-Network Visualization
           </h2>
           <p className="text-gray-600">
-            Interactive visualization of your family network. Click on nodes to zoom in, drag to move around.
+            Static visualization of your family network with clear nodes and edges.
           </p>
         </div>
         
@@ -138,14 +115,6 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
           >
             {showLabels ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             <span>{showLabels ? 'Hide' : 'Show'} Labels</span>
-          </button>
-          
-          <button
-            onClick={resetView}
-            className="btn-secondary flex items-center space-x-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Reset View</span>
           </button>
           
           <button
@@ -167,13 +136,13 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
       </div>
 
       {/* Network Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <div className="card text-center">
-          <div className="text-2xl font-bold text-primary-600">{graphData.nodes.length}</div>
+          <div className="text-2xl font-bold text-primary-600">{layout.nodes.length}</div>
           <div className="text-sm text-gray-600">Total Members</div>
         </div>
         <div className="card text-center">
-          <div className="text-2xl font-bold text-green-600">{graphData.links.length}</div>
+          <div className="text-2xl font-bold text-green-600">{layout.links.length}</div>
           <div className="text-sm text-gray-600">Relationships</div>
         </div>
         <div className="card text-center">
@@ -183,55 +152,66 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
           <div className="text-sm text-gray-600">Male Members</div>
         </div>
         <div className="card text-center">
-          <div className="text-2xl font-bold text-pink-600">
+          <div className="text-2xl font-bold text-yellow-500">
             {state.familyMembers.filter(m => m.gender === 'female').length}
           </div>
           <div className="text-sm text-gray-600">Female Members</div>
         </div>
+        <div className="card text-center">
+          <div className="text-2xl font-bold text-green-500">
+            {state.familyMembers.filter(m => m.gender === 'other').length}
+          </div>
+          <div className="text-sm text-gray-600">Other Members</div>
+        </div>
       </div>
 
-      {/* Network Graph */}
+      {/* Static Network Graph */}
       <div className="card p-0 overflow-hidden">
-        <div className="h-[600px] w-full">
-          <ForceGraph2D
-            ref={setGraphRef}
-            graphData={graphData}
-            nodeLabel={getNodeLabel}
-            nodeColor={getNodeColor}
-            nodeVal="val"
-            linkColor={() => '#e5e7eb'}
-            linkWidth={2}
-            onNodeClick={handleNodeClick}
-            cooldownTicks={100}
-            nodeCanvasObject={(node, ctx, globalScale) => {
-              const label = getNodeLabel(node)
-              const fontSize = node.isEgo ? 14 : 12
-              ctx.font = `${fontSize}px Inter`
-              ctx.textAlign = 'center'
-              ctx.textBaseline = 'middle'
-              
-              // Draw node
-              ctx.beginPath()
-              ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false)
-              ctx.fillStyle = getNodeColor(node)
-              ctx.fill()
-              
-              // Draw border for ego
-              if (node.isEgo) {
-                ctx.strokeStyle = '#1e40af'
-                ctx.lineWidth = 3
-                ctx.stroke()
-              }
-              
-              // Draw label
-              if (showLabels && label) {
-                ctx.fillStyle = '#1f2937'
-                ctx.fillText(label, node.x, node.y + node.val + 15)
-              }
-            }}
-            linkDirectionalParticles={2}
-            linkDirectionalParticleSpeed={0.005}
-          />
+        <div className="h-[600px] w-full bg-white">
+          <svg width="100%" height="100%" viewBox="0 0 600 600">
+            {/* Draw edges first (behind nodes) */}
+            {layout.links.map((link, index) => (
+              <line
+                key={`link-${index}`}
+                x1={link.source.x}
+                y1={link.source.y}
+                x2={link.target.x}
+                y2={link.target.y}
+                stroke="#374151"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            ))}
+            
+            {/* Draw nodes */}
+            {layout.nodes.map((node) => (
+              <g key={node.id}>
+                {/* Node circle */}
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={node.radius}
+                  fill={getNodeColor(node)}
+                  stroke="#374151"
+                  strokeWidth="2"
+                />
+                
+                {/* Node label */}
+                {showLabels && (
+                  <text
+                    x={node.x}
+                    y={node.y + node.radius + 20}
+                    textAnchor="middle"
+                    fontSize="12"
+                    fill="#1f2937"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    {node.name} ({node.age})
+                  </text>
+                )}
+              </g>
+            ))}
+          </svg>
         </div>
       </div>
 
@@ -240,36 +220,20 @@ const NetworkVisualization = ({ onBackToBuilder }) => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Network Legend</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">You (Ego)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-blue-800 rounded-full"></div>
-            <span className="text-sm text-gray-700">Father/Husband</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-pink-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">Mother/Wife</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-green-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">Son</span>
-          </div>
-          <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">Daughter</span>
+            <span className="text-sm text-gray-700">Male</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-indigo-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">Brother</span>
+            <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+            <span className="text-sm text-gray-700">Female</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-rose-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">Sister</span>
+            <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-gray-700">Other</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
-            <span className="text-sm text-gray-700">Grandparent</span>
+            <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+            <span className="text-sm text-gray-700">You (Ego) - Larger node</span>
           </div>
         </div>
       </div>
