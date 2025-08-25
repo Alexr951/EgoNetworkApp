@@ -2,37 +2,6 @@
 
 A modern web application for students to create and visualize ego-networks similar to the [KINMATRIX dataset](https://kinmatrix.eu/). This application allows users to build comprehensive family networks by inputting information about themselves and their family members, then visualizing the resulting network structure.
 
-## Features
-
-### 🏗️ Network Building
-- **Ego Information**: Add your own details as the central node
-- **Family Members**: Add comprehensive family member information including:
-  - Full name, age, and gender
-  - Relationship to you (father, mother, cousin, etc.)
-  - Support for immediate family, extended family, in-laws, and step-family
-- **Edit & Delete**: Modify or remove family members as needed
-- **Data Persistence**: Your network data is automatically saved to your browser
-
-### 📊 Network Visualization
-- **Interactive Graph**: Force-directed network visualization using react-force-graph-2d
-- **Color-coded Nodes**: Nodes are color-coded by gender (Purple = Male, Yellow = Female, Green = Other)
-- **Interactive Features**:
-  - Click nodes to zoom in
-  - Drag to move around the network
-  - Toggle labels on/off
-  - Reset view to original position
-- **Network Statistics**: View counts of total members, relationships, and gender distribution
-- **Data Export**: Download your network data as JSON
-- **Optimized Spacing**: Nodes maintain proper spacing for better visualization
-
-### 🎨 Modern UI/UX
-- **Responsive Design**: Works on desktop and mobile devices
-- **Beautiful Interface**: Clean, modern design with Tailwind CSS
-- **Intuitive Navigation**: Easy switching between building and visualization modes
-- **Progress Tracking**: Visual indicators of completion status
-- **Custom Logo**: Ego network icon representing the central node concept
-- **Favicon**: Custom favicon for better brand recognition
-
 ## Getting Started
 
 ### Prerequisites
@@ -85,7 +54,7 @@ This creates a `dist` folder with the production-ready files.
 
 1. **Switch to Visualization**: Click "View Network Visualization" when you have data
 2. **Explore the Network**:
-   - The blue node represents you (ego)
+   - The center node represents you (ego)
    - Other nodes represent family members, color-coded by relationship
    - Lines show connections from you to each family member
 3. **Interactive Features**:
