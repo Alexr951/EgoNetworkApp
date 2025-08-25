@@ -1,6 +1,7 @@
 {
   "name": "ego-network-app",
   "version": "1.0.0",
+  "type": "module",
   "description": "A web application for students to create and visualize ego-networks similar to KINMATRIX dataset",
   "main": "index.js",
   "scripts": {

@@ -1,8 +1,8 @@
 # Ego-Network Builder
 
-A modern web application for students to create and visualize ego-networks similar to the [KINMATRIX dataset](https://kinmatrix.eu/). This application allows users to build comprehensive family networks by inputting information about themselves and their family members, then visualizing the resulting network structure.
+A modern web application for students to create and visualize ego-networks similar to the [KINMATRIX dataset](https://kinmatrix.eu/). This application is meant to be used in UBC's SOCI 415 (Theories of Family and Kinship). This application allows users to build comprehensive family networks by inputting information about themselves and their family members, then visualizing the resulting network structure.
 
-## Getting Started
+## Getting Started For Development
 
 ### Prerequisites
 - Node.js (version 16 or higher)
@@ -57,11 +57,7 @@ This creates a `dist` folder with the production-ready files.
    - The center node represents you (ego)
    - Other nodes represent family members, color-coded by relationship
    - Lines show connections from you to each family member
-3. **Interactive Features**:
-   - Click any node to zoom in
-   - Drag to pan around the network
-   - Use controls to show/hide labels or reset the view
-4. **Export Data**: Download your network data for further analysis
+3. **Export Data**: Download your network data for further analysis
 
 ## Relationship Categories
 
@@ -79,25 +75,24 @@ The application supports comprehensive relationship types:
 - **React 18**: Modern React with hooks and context
 - **Vite**: Fast build tool and development server
 - **Tailwind CSS**: Utility-first CSS framework
-- **react-force-graph-2d**: Interactive network visualization
 - **Lucide React**: Beautiful icons
 - **Local Storage**: Data persistence in the browser
 
 ### Project Structure
 ```
 src/
-├── components/          # React components
-│   ├── Header.jsx      # Navigation header
-│   ├── NetworkBuilder.jsx      # Main builder interface
-│   ├── EgoForm.jsx     # Ego information form
-│   ├── FamilyMemberForm.jsx    # Family member form
-│   ├── FamilyMemberList.jsx    # List of family members
+├── components/                  # React components
+│   ├── Header.jsx               # Navigation header
+│   ├── NetworkBuilder.jsx       # Main builder interface
+│   ├── EgoForm.jsx              # Ego information form
+│   ├── FamilyMemberForm.jsx     # Family member form
+│   ├── FamilyMemberList.jsx     # List of family members
 │   └── NetworkVisualization.jsx # Network graph component
 ├── context/
-│   └── NetworkContext.jsx      # React context for state management
-├── App.jsx             # Main application component
-├── main.jsx           # React entry point
-└── index.css          # Global styles
+│   └── NetworkContext.jsx       # React context for state management
+├── App.jsx                      # Main application component
+├── main.jsx                     # React entry point
+└── index.css                    # Global styles
 ```
 
 ## Educational Value
@@ -131,6 +126,3 @@ MIT License - feel free to use this project for educational purposes.
 ## Acknowledgments
 
 - Inspired by the [KINMATRIX dataset](https://kinmatrix.eu/) and research methodology
-- Built with modern web technologies for educational purposes
-- Designed for students learning about social network analysis and family studies
-
